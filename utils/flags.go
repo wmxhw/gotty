@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/codegangsta/cli"
 	"github.com/fatih/structs"
+	"github.com/urfave/cli/v2"
 	"github.com/yudai/hcl"
 
 	"github.com/yudai/gotty/pkg/homedir"
@@ -28,32 +28,38 @@ func GenerateFlags(options ...interface{}) (flags []cli.Flag, mappings map[strin
 			mappings[flagName] = field.Name()
 
 			flagShortName := field.Tag("flagSName")
+			aliases := []string{}
 			if flagShortName != "" {
-				flagName += ", " + flagShortName
+				// 短名称应该是单个字符,不需要逗号分隔
+				// 使用cli.Flag的Aliases字段来设置短名称
+				aliases = append(aliases, flagShortName)
 			}
 
 			flagDescription := field.Tag("flagDescribe")
 
 			switch field.Kind() {
 			case reflect.String:
-				flags = append(flags, cli.StringFlag{
-					Name:   flagName,
-					Value:  field.Value().(string),
-					Usage:  flagDescription,
-					EnvVar: envName,
+				flags = append(flags, &cli.StringFlag{
+					Name:    flagName,
+					Aliases: aliases,
+					Value:   field.Value().(string),
+					Usage:   flagDescription,
+					EnvVars: []string{envName},
 				})
 			case reflect.Bool:
-				flags = append(flags, cli.BoolFlag{
-					Name:   flagName,
-					Usage:  flagDescription,
-					EnvVar: envName,
+				flags = append(flags, &cli.BoolFlag{
+					Name:    flagName,
+					Aliases: aliases,
+					Usage:   flagDescription,
+					EnvVars: []string{envName},
 				})
 			case reflect.Int:
-				flags = append(flags, cli.IntFlag{
-					Name:   flagName,
-					Value:  field.Value().(int),
-					Usage:  flagDescription,
-					EnvVar: envName,
+				flags = append(flags, &cli.IntFlag{
+					Name:    flagName,
+					Aliases: aliases,
+					Value:   field.Value().(int),
+					Usage:   flagDescription,
+					EnvVars: []string{envName},
 				})
 			}
 		}

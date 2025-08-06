@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -9,7 +10,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli/v2"
 
 	"github.com/yudai/gotty/backend/localcommand"
 	"github.com/yudai/gotty/pkg/homedir"
@@ -41,19 +42,18 @@ func main() {
 
 	app.Flags = append(
 		cliFlags,
-		cli.StringFlag{
-			Name:   "config",
-			Value:  "~/.gotty",
-			Usage:  "Config file path",
-			EnvVar: "GOTTY_CONFIG",
+		&cli.StringFlag{
+			Name:    "config",
+			Value:   "~/.gotty",
+			Usage:   "Config file path",
+			EnvVars: []string{"GOTTY_CONFIG"},
 		},
 	)
 
-	app.Action = func(c *cli.Context) {
-		if len(c.Args()) == 0 {
-			msg := "Error: No command given."
+	app.Action = func(c *cli.Context) error {
+		if c.Args().Len() == 0 {
 			cli.ShowAppHelp(c)
-			exit(fmt.Errorf(msg), 1)
+			return errors.New("Error: No command given.")
 		}
 
 		configFile := c.String("config")
@@ -74,7 +74,7 @@ func main() {
 			exit(err, 6)
 		}
 
-		args := c.Args()
+		args := c.Args().Slice()
 		factory, err := localcommand.NewFactory(args[0], args[1:], backendOptions)
 		if err != nil {
 			exit(err, 3)
@@ -108,8 +108,12 @@ func main() {
 			exit(err, 8)
 		}
 
+		return nil
 	}
-	app.Run(os.Args)
+	err = app.Run(os.Args)
+	if err != nil {
+		exit(err, 1)
+	}
 }
 
 func exit(err error, code int) {
