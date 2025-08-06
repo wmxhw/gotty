@@ -36,6 +36,10 @@ type Server struct {
 // New creates a new instance of Server.
 // Server will use the New() of the factory provided to handle each request.
 func New(factory Factory, options *Options) (*Server, error) {
+	err := options.Validate()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to validate options")
+	}
 	indexData, err := Asset("static/index.html")
 	if err != nil {
 		panic("index not found") // must be in bindata
@@ -95,7 +99,7 @@ func (server *Server) Run(ctx context.Context, options ...RunOption) error {
 
 	counter := newCounter(time.Duration(server.options.Timeout) * time.Second)
 
-	path := "/"
+	path := server.options.HTTPPrefix
 	if server.options.EnableRandomUrl {
 		path = "/" + randomstring.Generate(server.options.RandomUrlLength) + "/"
 	}

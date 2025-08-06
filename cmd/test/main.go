@@ -19,6 +19,7 @@ func main() {
 		Address:     "0.0.0.0",
 		Port:        "8026",
 		PermitWrite: true,
+		HTTPPrefix:  "/test/",
 	})
 	if err != nil {
 		panic(err)

@@ -1,12 +1,15 @@
 package server
 
 import (
+	"strings"
+
 	"github.com/pkg/errors"
 )
 
 type Options struct {
 	Address             string           `hcl:"address" flagName:"address" flagSName:"a" flagDescribe:"IP address to listen" default:"0.0.0.0"`
 	Port                string           `hcl:"port" flagName:"port" flagSName:"p" flagDescribe:"Port number to liten" default:"8080"`
+	HTTPPrefix          string           `hcl:"http_prefix" flagName:"prefix" flagDescribe:"HTTP path prefix" default:"/"`
 	PermitWrite         bool             `hcl:"permit_write" flagName:"permit-write" flagSName:"w" flagDescribe:"Permit clients to write to the TTY (BE CAREFUL)" default:"false"`
 	EnableBasicAuth     bool             `hcl:"enable_basic_auth" default:"false"`
 	Credential          string           `hcl:"credential" flagName:"credential" flagSName:"c" flagDescribe:"Credential for Basic Authentication (ex: user:pass, default disabled)" default:""`
@@ -38,6 +41,19 @@ func (options *Options) Validate() error {
 	if options.EnableTLSClientAuth && !options.EnableTLS {
 		return errors.New("TLS client authentication is enabled, but TLS is not enabled")
 	}
+
+	// 确保prefix以/开头
+	if options.HTTPPrefix == "" {
+		options.HTTPPrefix = "/"
+	}
+	if !strings.HasPrefix(options.HTTPPrefix, "/") {
+		options.HTTPPrefix = "/" + options.HTTPPrefix
+	}
+	// 确保prefix以/结尾
+	if !strings.HasSuffix(options.HTTPPrefix, "/") {
+		options.HTTPPrefix = options.HTTPPrefix + "/"
+	}
+
 	return nil
 }
 
