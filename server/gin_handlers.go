@@ -222,9 +222,16 @@ func (h *GinHandlers) RegisterGlobalRoutes(router *gin.Engine, groupPrefix strin
 }
 
 // RegisterRoutesWithGlobalMapping 一键注册路由并自动处理全局静态资源映射
-func (h *GinHandlers) RegisterRoutesWithGlobalMapping(router *gin.Engine, groupPrefix string) {
+// middlewares: 可选的中间件列表，将应用到路由组
+func (h *GinHandlers) RegisterRoutesWithGlobalMapping(router *gin.Engine, groupPrefix string, middlewares ...gin.HandlerFunc) {
 	// 注册路由组
 	group := router.Group(groupPrefix)
+
+	// 应用传入的中间件
+	for _, middleware := range middlewares {
+		group.Use(middleware)
+	}
+
 	h.RegisterRoutes(group)
 
 	// 注册全局静态资源映射

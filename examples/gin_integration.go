@@ -44,8 +44,13 @@ func main() {
 
 	// 示例1: 最简单的集成方式 - 自动处理HTML相对路径问题
 	// 访问: http://localhost:8027/terminal/
+
+	mid := func(c *gin.Context) {
+		log.Println("mid", c.Request.URL.Path)
+		c.Next()
+	}
 	var prefix = "/api/v2/system/terminal"
-	gottyHandlers.RegisterRoutesWithGlobalMapping(router, prefix)
+	gottyHandlers.RegisterRoutesWithGlobalMapping(router, prefix, mid)
 
 	// 示例1-old: 手动方式（如果需要更精细的控制）
 	// terminalGroup := router.Group("/terminal")
